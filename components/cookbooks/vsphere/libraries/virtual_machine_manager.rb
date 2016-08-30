@@ -87,18 +87,10 @@ class VirtualMachineManager
   end
   private :throttle_yum
 
-  def sfdisk_device
-    options = vm_execute_options
-    options['command'] = '/usr/bin/echo'
-    options['args'] = " ';' | sfdisk /dev/sdb"
-    return options
-  end
-  private :sfdisk_device
-
   def format_device
     options = vm_execute_options
     options['command'] = '/sbin/mkfs.ext4'
-    options['args'] = '/dev/sdb1'
+    options['args'] = ' -F /dev/sdb'
     return options
   end
   private :format_device
@@ -114,7 +106,7 @@ class VirtualMachineManager
   def mount_device
     options = vm_execute_options
     options['command'] = '/bin/mount'
-    options['args'] = "/dev/sdb1 #{EPHEMERAL_MOUNT}"
+    options['args'] = "/dev/sdb #{EPHEMERAL_MOUNT}"
     return options
   end
   private :mount_device
@@ -122,7 +114,7 @@ class VirtualMachineManager
   def fstab_device
     options = vm_execute_options
     options['command'] = '/usr/bin/echo'
-    options['args'] = "/dev/sdb1 #{EPHEMERAL_MOUNT} ext4  defaults 1 2 >> /etc/fstab"
+    options['args'] = "/dev/sdb #{EPHEMERAL_MOUNT} ext4  defaults 1 2 >> /etc/fstab"
     return options
   end
   private :fstab_device
@@ -131,8 +123,6 @@ class VirtualMachineManager
     is_ephemeral_mount_created = false
     Chef::Log.info("creating secondary device mount")
     begin
-      Chef::Log.info("partitioning device")
-      @compute_provider.vm_execute(sfdisk_device)
       Chef::Log.info("formatting device")
       @compute_provider.vm_execute(format_device)
       sleep(10)
